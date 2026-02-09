@@ -25,7 +25,7 @@
       default: "arcade",
       arcade: {
         gravity: { y: 600 },
-        debug: true   // 🔥 디버그 ON
+        debug: false
       }
     },
     scene: {
@@ -42,39 +42,49 @@
 
   const PLAYER_SPEED = 100;
   const OBSTACLE_SPEED = 100;
-  const JUMP = 260;
+  const JUMP_POWER = 260;
   const GROUND_Y = 220;
 
   function create() {
-    // 바닥
+    /* =====================
+       바닥
+    ===================== */
     const ground = this.add.rectangle(0, GROUND_Y, 480, 50, 0x555555);
     ground.setOrigin(0);
     this.physics.add.existing(ground, true);
 
-    // 플레이어
+    /* =====================
+       플레이어 (플로버)
+    ===================== */
     player = this.add.rectangle(420, GROUND_Y - 20, 16, 24, 0x00ff88);
     this.physics.add.existing(player);
-    this.physics.add.collider(player, ground);
 
     player.body.setCollideWorldBounds(true);
+    this.physics.add.collider(player, ground);
 
-    // ✅ 장애물 (Graphics 사용)
+    /* =====================
+       장애물 (Graphics → Texture)
+    ===================== */
     const g = this.add.graphics();
     g.fillStyle(0xff0000, 1);
     g.fillRect(0, 0, 24, 32);
-
-    obstacle = this.physics.add.existing(
-      g.generateTexture("obstacleTex", 24, 32),
-      false
-    );
+    g.generateTexture("obstacleTex", 24, 32);
+    g.destroy();
 
     obstacle = this.physics.add.image(360, GROUND_Y - 16, "obstacleTex");
+
     obstacle.setVelocityX(-OBSTACLE_SPEED);
     obstacle.setImmovable(true);
+
+    // 🔑 핵심: 장애물은 중력 영향 X
+    obstacle.body.allowGravity = false;
 
     this.physics.add.collider(obstacle, ground);
     this.physics.add.collider(player, obstacle, onHit);
 
+    /* =====================
+       키 입력
+    ===================== */
     cursors = this.input.keyboard.createCursorKeys();
   }
 
@@ -83,12 +93,15 @@
   }
 
   function update() {
+    /* 플레이어 자동 이동 (←) */
     player.body.setVelocityX(-PLAYER_SPEED);
 
+    /* 점프 */
     if (cursors.space.isDown && player.body.blocked.down) {
-      player.body.setVelocityY(-JUMP);
+      player.body.setVelocityY(-JUMP_POWER);
     }
 
+    /* 화면 루프 */
     if (player.x < -10) {
       player.x = 490;
     }

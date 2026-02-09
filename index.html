@@ -76,18 +76,18 @@ function create() {
   );
   this.physics.add.existing(ground, true);
 
-  // 플레이어 (오른쪽)
+  // 플레이어 (오른쪽 고정)
   player = this.physics.add.sprite(600, GROUND_Y - 20, "player");
   player.setTint(0x4caf50);
   player.setCollideWorldBounds(true);
+  player.jumped = false;
 
-  // 장애물 (왼쪽, 중력 ❌)
-  obstacle = this.physics.add.sprite(200, GROUND_Y - 20, "obstacle");
+  // 장애물 (왼쪽)
+  obstacle = this.physics.add.sprite(150, GROUND_Y - 20, "obstacle");
   obstacle.setTint(0xb0b0b0);
-
-  obstacle.body.setAllowGravity(false); // 🔴 핵심
-  obstacle.body.setImmovable(true);     // 🔴 핵심
-  obstacle.setVelocityY(0);             // 🔴 핵심
+  obstacle.body.setAllowGravity(false);
+  obstacle.body.setImmovable(true);
+  obstacle.setVelocity(0, 0);
 
   // 충돌
   this.physics.add.collider(player, ground);
@@ -111,10 +111,34 @@ function create() {
    update
 =============================== */
 function update() {
-  // 장애물은 좌우만 이동
+  // 장애물 이동
   if (gameState === "SUCCESS" || gameState === "FAIL") {
     obstacle.setVelocityX(200);
-    obstacle.setVelocityY(0); // 🔴 Y 고정
+    obstacle.setVelocityY(0);
+  }
+
+  // 장애물이 플레이어 근처에 왔을 때 점프
+  if (
+    (gameState === "SUCCESS" || gameState === "FAIL") &&
+    !player.jumped &&
+    obstacle.x >= player.x - 80
+  ) {
+    player.jumped = true;
+
+    if (gameState === "SUCCESS") {
+      player.setAngle(0);
+      player.setVelocityY(-380); // 성공 점프
+    } else {
+      player.setVelocityY(-260); // 실패 점프
+      setTimeout(() => {
+        player.setAngle(90);
+      }, 350);
+    }
+  }
+
+  // 성공 시 장애물 완전히 지나가면 리셋
+  if (gameState === "SUCCESS" && obstacle.x > player.x + 60) {
+    resetScene(game.scene.scenes[0]);
   }
 }
 
@@ -124,9 +148,6 @@ function update() {
 window.correct = function () {
   if (gameState !== "IDLE") return;
   gameState = "SUCCESS";
-
-  player.setAngle(0);
-  player.setVelocityY(-380);
 };
 
 /* ===============================
@@ -135,12 +156,6 @@ window.correct = function () {
 window.wrong = function () {
   if (gameState !== "IDLE") return;
   gameState = "FAIL";
-
-  player.setVelocityY(-260);
-
-  setTimeout(() => {
-    player.setAngle(90);
-  }, 350);
 };
 
 /* ===============================

@@ -3,27 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <title>Path of flover</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Phaser CDN -->
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
 
   <style>
     body {
       margin: 0;
-      padding: 0;
-      background: #111;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      background: #000;
     }
   </style>
 </head>
 <body>
 
-  <!-- 게임 로직 -->
-  <script src="main.js"></script>
+<script>
+  console.log("INLINE SCRIPT START");
+
+  const config = {
+    type: Phaser.AUTO,
+    width: 480,
+    height: 270,
+    backgroundColor: "#111111",
+    scene: {
+      create: function () {
+        console.log("SCENE CREATE");
+
+        this.add.rectangle(0, 0, 480, 270, 0x222222)
+          .setOrigin(0);
+
+        this.add.text(240, 120, "Path of flover", {
+          fontFamily: "Arial",
+          fontSize: "24px",
+          color: "#ffffff"
+        }).setOrigin(0.5);
+
+        this.add.text(240, 160, "INLINE TEST OK", {
+          fontFamily: "Arial",
+          fontSize: "14px",
+          color: "#aaaaaa"
+        }).setOrigin(0.5);
+      }
+    }
+  };
+
+  new Phaser.Game(config);
+</script>
 
 </body>
 </html>

@@ -1,11 +1,15 @@
-console.log("main.js loaded");
-
 const config = {
   type: Phaser.AUTO,
   width: 480,
   height: 270,
-  backgroundColor: "#2d2d2d",
-  parent: null,
+  backgroundColor: "#222222",
+  physics: {
+    default: "arcade",
+    arcade: {
+      gravity: { y: 0 },
+      debug: false
+    }
+  },
   scene: {
     preload,
     create,
@@ -15,29 +19,29 @@ const config = {
 
 new Phaser.Game(config);
 
-function preload() {
-  console.log("preload()");
-}
+let player;
+let speed = 60;
+
+function preload() {}
 
 function create() {
-  console.log("create()");
+  // 바닥
+  this.ground = this.add.rectangle(0, 220, 480, 50, 0x444444);
+  this.ground.setOrigin(0);
 
-  // 배경 사각형 (Scene 실행 확인용)
-  const bg = this.add.rectangle(0, 0, 480, 270, 0x1e1e1e);
-  bg.setOrigin(0);
+  // 플레이어 (임시 사각형)
+  player = this.add.rectangle(50, 200, 16, 24, 0x00ff88);
+  this.physics.add.existing(player);
 
-  // 텍스트
-  this.add.text(240, 120, "Path of flover", {
-    fontFamily: "Arial",
-    fontSize: "24px",
-    color: "#ffffff"
-  }).setOrigin(0.5);
-
-  this.add.text(240, 160, "Game loading...", {
-    fontFamily: "Arial",
-    fontSize: "14px",
-    color: "#bbbbbb"
-  }).setOrigin(0.5);
+  player.body.setCollideWorldBounds(true);
 }
 
-function update() {}
+function update() {
+  // 자동 걷기
+  player.x += speed * 0.016;
+
+  // 화면 끝에 가면 다시 왼쪽으로
+  if (player.x > 480) {
+    player.x = -10;
+  }
+}

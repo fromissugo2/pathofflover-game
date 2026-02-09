@@ -40,32 +40,39 @@
   let obstacle;
   let cursors;
 
-  const PLAYER_SPEED = 100;
-  const OBSTACLE_SPEED = 100;
-  const JUMP = 260;
+  const OBSTACLE_SPEED = 140;
+  const JUMP_POWER = 260;
   const GROUND_Y = 220;
 
   function create() {
-    /* ===== 바닥 ===== */
+    /* =====================
+       바닥
+    ===================== */
     const ground = this.add.rectangle(0, GROUND_Y, 480, 50, 0x555555);
     ground.setOrigin(0);
     this.physics.add.existing(ground, true);
 
-    /* ===== 플레이어 ===== */
-    player = this.add.rectangle(420, GROUND_Y - 20, 16, 24, 0x00ff88);
+    /* =====================
+       플레이어 (고정 러너)
+    ===================== */
+    player = this.add.rectangle(120, GROUND_Y - 20, 16, 24, 0x00ff88);
     this.physics.add.existing(player);
 
     player.body.setCollideWorldBounds(true);
     this.physics.add.collider(player, ground);
 
-    /* ===== 장애물 (STATIC BODY) ===== */
-    obstacle = this.add.rectangle(360, GROUND_Y - 20, 24, 32, 0xff0000);
-    this.physics.add.existing(obstacle, true); // ⭐ static body
+    /* =====================
+       장애물 (STATIC + 수동 이동)
+    ===================== */
+    obstacle = this.add.rectangle(480, GROUND_Y - 20, 24, 32, 0xff0000);
+    this.physics.add.existing(obstacle, true); // static body
 
     // 플레이어와 충돌
     this.physics.add.collider(player, obstacle, onHit);
 
-    /* ===== 입력 ===== */
+    /* =====================
+       입력
+    ===================== */
     cursors = this.input.keyboard.createCursorKeys();
   }
 
@@ -74,23 +81,16 @@
   }
 
   function update() {
-    /* 플레이어 자동 이동 (←) */
-    player.body.setVelocityX(-PLAYER_SPEED);
-
     /* 점프 */
     if (cursors.space.isDown && player.body.blocked.down) {
-      player.body.setVelocityY(-JUMP);
+      player.body.setVelocityY(-JUMP_POWER);
     }
 
-    /* 화면 루프 */
-    if (player.x < -10) {
-      player.x = 490;
-    }
-
-    /* 장애물 수동 이동 (중력 영향 ❌) */
+    /* 장애물 이동 (오른쪽 → 왼쪽) */
     obstacle.x -= OBSTACLE_SPEED * 0.016;
 
-    if (obstacle.x < -30) {
+    /* 장애물 재등장 */
+    if (obstacle.x < -40) {
       obstacle.x = 480;
     }
   }

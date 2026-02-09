@@ -2,25 +2,27 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Path of flover</title>
+  <title>Path of flover – CACHE TEST</title>
 
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 
   <style>
     body {
       margin: 0;
-      background: #000;
+      background: #111;
     }
   </style>
 </head>
 <body>
 
 <script>
+  console.log("🚨 CACHE TEST VERSION LOADED");
+
   const config = {
     type: Phaser.AUTO,
     width: 480,
     height: 270,
-    backgroundColor: "#222222",
+    backgroundColor: "#003366",
     physics: {
       default: "arcade",
       arcade: {
@@ -40,56 +42,41 @@
   let obstacle;
   let cursors;
 
-  const OBSTACLE_SPEED = 140;
-  const JUMP_POWER = 260;
+  const OBSTACLE_SPEED = 400; // 🚀 매우 빠름
+  const JUMP = 260;
   const GROUND_Y = 220;
 
   function create() {
-    /* =====================
-       바닥
-    ===================== */
-    const ground = this.add.rectangle(0, GROUND_Y, 480, 50, 0x555555);
+    // 바닥
+    const ground = this.add.rectangle(0, GROUND_Y, 480, 50, 0x999999);
     ground.setOrigin(0);
     this.physics.add.existing(ground, true);
 
-    /* =====================
-       플레이어 (고정 러너)
-    ===================== */
-    player = this.add.rectangle(120, GROUND_Y - 20, 16, 24, 0x00ff88);
+    // 플레이어 (완전 고정)
+    player = this.add.rectangle(100, GROUND_Y - 20, 16, 24, 0x00ff88);
     this.physics.add.existing(player);
-
-    player.body.setCollideWorldBounds(true);
     this.physics.add.collider(player, ground);
 
-    /* =====================
-       장애물 (STATIC + 수동 이동)
-    ===================== */
-    obstacle = this.add.rectangle(480, GROUND_Y - 20, 24, 32, 0xff0000);
-    this.physics.add.existing(obstacle, true); // static body
+    // 🔵 장애물 (상단 + 파란색)
+    obstacle = this.add.rectangle(480, 80, 30, 30, 0x3399ff);
+    this.physics.add.existing(obstacle, true);
 
-    // 플레이어와 충돌
-    this.physics.add.collider(player, obstacle, onHit);
+    this.physics.add.collider(player, obstacle, () => {
+      console.log("💥 HIT (CACHE TEST)");
+    });
 
-    /* =====================
-       입력
-    ===================== */
     cursors = this.input.keyboard.createCursorKeys();
   }
 
-  function onHit() {
-    console.log("💥 HIT OBSTACLE");
-  }
-
   function update() {
-    /* 점프 */
+    // 점프만
     if (cursors.space.isDown && player.body.blocked.down) {
-      player.body.setVelocityY(-JUMP_POWER);
+      player.body.setVelocityY(-JUMP);
     }
 
-    /* 장애물 이동 (오른쪽 → 왼쪽) */
+    // 장애물 초고속 이동
     obstacle.x -= OBSTACLE_SPEED * 0.016;
 
-    /* 장애물 재등장 */
     if (obstacle.x < -40) {
       obstacle.x = 480;
     }

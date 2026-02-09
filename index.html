@@ -98,21 +98,28 @@ function create() {
   player.setCollideWorldBounds(true);
   player.jumped = false;
 
-  /* 장애물 */
+  /* 장애물 (허들) */
   obstacle = this.physics.add.sprite(
     150,
     GROUND_Y - 32,
     "hurdle"
   );
-  obstacle.setScale(2);
+
+  // 🔑 허들만 작게
+  obstacle.setScale(1.3);
+
   obstacle.body.setAllowGravity(false);
   obstacle.body.setImmovable(true);
   obstacle.setVelocity(0, 0);
 
-  // 히트박스 살짝 조정
+  // 🔑 히트박스 보정
   obstacle.body.setSize(
-    obstacle.width - 10,
-    obstacle.height - 8
+    obstacle.width * 0.6,
+    obstacle.height * 0.6
+  );
+  obstacle.body.setOffset(
+    obstacle.width * 0.2,
+    obstacle.height * 0.4
   );
 
   /* 충돌 */
@@ -165,7 +172,7 @@ function update() {
     }
   }
 
-  /* 착지 후 대기 상태 */
+  /* 착지 후 대기 */
   if (
     player.body.blocked.down &&
     gameState === "IDLE"

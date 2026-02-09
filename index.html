@@ -39,7 +39,7 @@ const config = {
     default: "arcade",
     arcade: {
       gravity: { y: 900 },
-      debug: false
+      debug: false   // 👈 디버그 OFF
     }
   },
   render: {
@@ -59,15 +59,11 @@ new Phaser.Game(config);
    preload
 =============================== */
 function preload() {
-  // 캐릭터
   this.load.image("player_idle", "assets/characters/flover_idle.jpg");
   this.load.image("player_jump", "assets/characters/flover_jump.jpg");
   this.load.image("player_fail", "assets/characters/flover_fail.jpg");
 
-  // 허들
   this.load.image("hurdle", "assets/obstacles/hurdle.png");
-
-  // 바닥
   this.load.image("ground", "assets/terrain/ground.png");
 }
 
@@ -77,7 +73,7 @@ function preload() {
 function create() {
 
   /* ===============================
-     보이는 바닥 (배경용)
+     보이는 바닥 (배경)
   =============================== */
   this.groundVisual = this.add.tileSprite(
     WIDTH / 2,
@@ -88,15 +84,18 @@ function create() {
   );
 
   /* ===============================
-     충돌용 바닥 (투명)
+     충돌용 바닥 (rectangle)
   =============================== */
-  groundCollider = this.physics.add.staticSprite(
+  const groundRect = this.add.rectangle(
     WIDTH / 2,
     GROUND_Y + 40,
-    null
+    WIDTH,
+    20,
+    0x000000,
+    0   // 완전 투명
   );
-  groundCollider.body.setSize(WIDTH, 20);
-  groundCollider.body.setOffset(-WIDTH / 2, -10);
+  this.physics.add.existing(groundRect, true);
+  groundCollider = groundRect;
 
   /* ===============================
      플레이어
@@ -120,8 +119,8 @@ function create() {
   );
 
   const TARGET_HURDLE_HEIGHT = 26;
-  const hurdleScale = TARGET_HURDLE_HEIGHT / obstacle.height;
-  obstacle.setScale(hurdleScale);
+  const scale = TARGET_HURDLE_HEIGHT / obstacle.height;
+  obstacle.setScale(scale);
 
   obstacle.body.setAllowGravity(false);
   obstacle.body.setImmovable(true);
@@ -150,7 +149,6 @@ function create() {
     }
   });
 
-  /* 안내 */
   this.add.text(20, 20, "콘솔에서 correct() / wrong()", {
     font: "16px Arial",
     fill: "#000"
@@ -162,15 +160,15 @@ function create() {
 =============================== */
 function update() {
 
-  /* 바닥 스크롤 (연출용) */
+  // 바닥 스크롤 연출
   this.groundVisual.tilePositionX += 2;
 
-  /* 허들 이동 */
+  // 허들 이동
   if (gameState === "SUCCESS" || gameState === "FAIL") {
     obstacle.setVelocityX(200);
   }
 
-  /* 점프 타이밍 */
+  // 점프 타이밍
   if (
     (gameState === "SUCCESS" || gameState === "FAIL") &&
     !player.jumped &&
@@ -190,13 +188,13 @@ function update() {
     }
   }
 
-  /* 착지 후 대기 */
+  // 착지
   if (player.body.blocked.down && gameState === "IDLE") {
     player.setTexture("player_idle");
     player.setAngle(0);
   }
 
-  /* 성공 후 리셋 */
+  // 성공 리셋
   if (gameState === "SUCCESS" && obstacle.x > player.x + 60) {
     resetScene(this);
   }

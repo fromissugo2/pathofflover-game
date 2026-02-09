@@ -23,7 +23,8 @@ const WIDTH = 800;
 const HEIGHT = 400;
 const GROUND_Y = 320;
 
-let player, obstacle, ground;
+let player, obstacle;
+let groundCollider;
 let gameState = "IDLE";
 
 /* ===============================
@@ -75,19 +76,34 @@ function preload() {
 =============================== */
 function create() {
 
-  /* 바닥 */
-  ground = this.physics.add.staticSprite(
+  /* ===============================
+     보이는 바닥 (배경용)
+  =============================== */
+  this.groundVisual = this.add.tileSprite(
     WIDTH / 2,
     GROUND_Y + 20,
+    WIDTH,
+    64,
     "ground"
   );
-  ground.setScale(2);
-  ground.refreshBody();
 
-  /* 플레이어 */
+  /* ===============================
+     충돌용 바닥 (투명)
+  =============================== */
+  groundCollider = this.physics.add.staticSprite(
+    WIDTH / 2,
+    GROUND_Y + 40,
+    null
+  );
+  groundCollider.body.setSize(WIDTH, 20);
+  groundCollider.body.setOffset(-WIDTH / 2, -10);
+
+  /* ===============================
+     플레이어
+  =============================== */
   player = this.physics.add.sprite(
     600,
-    GROUND_Y - 40,
+    GROUND_Y - 28,
     "player_idle"
   );
   player.setScale(2);
@@ -95,7 +111,7 @@ function create() {
   player.jumped = false;
 
   /* ===============================
-     허들 (크기 정규화 핵심)
+     허들 (크기 정규화)
   =============================== */
   obstacle = this.physics.add.sprite(
     150,
@@ -103,18 +119,13 @@ function create() {
     "hurdle"
   );
 
-  // 🎯 목표 허들 높이 (픽셀 기준)
   const TARGET_HURDLE_HEIGHT = 26;
-
-  // 원본 이미지 기준 자동 스케일
   const hurdleScale = TARGET_HURDLE_HEIGHT / obstacle.height;
   obstacle.setScale(hurdleScale);
 
   obstacle.body.setAllowGravity(false);
   obstacle.body.setImmovable(true);
-  obstacle.setVelocity(0, 0);
 
-  // 히트박스 = 보이는 크기 기준
   obstacle.body.setSize(
     obstacle.displayWidth * 0.9,
     obstacle.displayHeight * 0.8
@@ -124,9 +135,11 @@ function create() {
     obstacle.displayHeight * 0.2
   );
 
-  /* 충돌 */
-  this.physics.add.collider(player, ground);
-  this.physics.add.collider(obstacle, ground);
+  /* ===============================
+     충돌
+  =============================== */
+  this.physics.add.collider(player, groundCollider);
+  this.physics.add.collider(obstacle, groundCollider);
 
   this.physics.add.collider(player, obstacle, () => {
     if (gameState === "FAIL") {
@@ -148,6 +161,9 @@ function create() {
    update
 =============================== */
 function update() {
+
+  /* 바닥 스크롤 (연출용) */
+  this.groundVisual.tilePositionX += 2;
 
   /* 허들 이동 */
   if (gameState === "SUCCESS" || gameState === "FAIL") {

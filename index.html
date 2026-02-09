@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Path of flover</title>
 
+  <!-- 캐시 무력화 -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -52,13 +53,13 @@ const config = {
   }
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
 
 /* ===============================
    preload
 =============================== */
 function preload() {
-  // 임시 도형 (나중에 도트 스프라이트로 교체)
+  // 임시 사각형 스프라이트 (나중에 도트로 교체)
   this.load.image("player", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAFUlEQVRIS2NkYGD4z0AEYBxVSFUAANR+BBcOW0xKAAAAAElFTkSuQmCC");
   this.load.image("obstacle", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAFUlEQVRIS2NkYGD4z0AEYBxVSFUAANR+BBcOW0xKAAAAAElFTkSuQmCC");
 }
@@ -87,15 +88,14 @@ function create() {
   obstacle.setTint(0xb0b0b0);
   obstacle.setImmovable(true);
 
-  // 충돌
+  // 충돌 설정
   this.physics.add.collider(player, ground);
   this.physics.add.collider(obstacle, ground);
 
   this.physics.add.collider(player, obstacle, () => {
     if (gameState === "FAIL") {
-      player.setVelocityX(0);
-      player.setVelocityY(0);
-      player.setAngle(90);
+      player.setVelocity(0);
+      player.setAngle(90); // 넘어짐 연출
       resetScene(this);
     }
   });
@@ -111,28 +111,44 @@ function create() {
    update
 =============================== */
 function update() {
-  // 아무 것도 안 함 (연출 중심)
+  // 연출 중심이라 비워둠
 }
 
 /* ===============================
-   정답 / 오답 트리거
+   정답 처리
 =============================== */
 window.correct = function () {
   if (gameState !== "IDLE") return;
   gameState = "SUCCESS";
 
-  obstacle.setVelocityX(200);
-  player.setVelocityY(-350);
+  obstacle.setVelocityX(200);   // 왼 → 오른쪽
+  player.setVelocityY(-350);    // 충분한 점프
 
-  setTimeout(() => resetScene(game.scene.scenes[0]), 1200);
+  setTimeout(() => {
+    resetScene(game.scene.scenes[0]);
+  }, 1200);
 };
 
+/* ===============================
+   오답 처리 (핵심 수정 부분)
+=============================== */
 window.wrong = function () {
   if (gameState !== "IDLE") return;
   gameState = "FAIL";
 
-  obstacle.setVelocityX(200);
-  player.setVelocityY(-200);
+  // 1️⃣ 점프 먼저 (눈에 보이게)
+  player.setVelocityY(-260);
+
+  // 2️⃣ 잠깐 충돌 비활성화
+  player.body.checkCollision.none = true;
+
+  // 3️⃣ 장애물 이동을 약간 늦게 시작
+  setTimeout(() => {
+    obstacle.setVelocityX(200);
+
+    // 4️⃣ 다시 충돌 활성화 → 일부러 걸리게
+    player.body.checkCollision.none = false;
+  }, 250);
 };
 
 /* ===============================

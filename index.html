@@ -81,11 +81,13 @@ function create() {
   player.setTint(0x4caf50);
   player.setCollideWorldBounds(true);
 
-  // 장애물 (왼쪽)
+  // 장애물 (왼쪽, 중력 ❌)
   obstacle = this.physics.add.sprite(200, GROUND_Y - 20, "obstacle");
   obstacle.setTint(0xb0b0b0);
-  obstacle.setImmovable(true);
-  obstacle.body.setAllowGravity(false);
+
+  obstacle.body.setAllowGravity(false); // 🔴 핵심
+  obstacle.body.setImmovable(true);     // 🔴 핵심
+  obstacle.setVelocityY(0);             // 🔴 핵심
 
   // 충돌
   this.physics.add.collider(player, ground);
@@ -109,13 +111,10 @@ function create() {
    update
 =============================== */
 function update() {
+  // 장애물은 좌우만 이동
   if (gameState === "SUCCESS" || gameState === "FAIL") {
     obstacle.setVelocityX(200);
-  }
-
-  // 성공 시 장애물 넘으면 종료
-  if (gameState === "SUCCESS" && obstacle.x > player.x + 40) {
-    resetScene(game.scene.scenes[0]);
+    obstacle.setVelocityY(0); // 🔴 Y 고정
   }
 }
 
@@ -127,7 +126,7 @@ window.correct = function () {
   gameState = "SUCCESS";
 
   player.setAngle(0);
-  player.setVelocityY(-380); // 충분한 점프
+  player.setVelocityY(-380);
 };
 
 /* ===============================
@@ -137,10 +136,8 @@ window.wrong = function () {
   if (gameState !== "IDLE") return;
   gameState = "FAIL";
 
-  // 점프는 하지만 낮음
   player.setVelocityY(-260);
 
-  // 공중에서 균형 잃기
   setTimeout(() => {
     player.setAngle(90);
   }, 350);

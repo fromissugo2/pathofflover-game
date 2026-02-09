@@ -36,21 +36,16 @@
 
   new Phaser.Game(config);
 
-  /* =====================
-     상수 / 상태
-  ===================== */
+  /* ===== 상수 ===== */
   const GROUND_Y = 220;
   const PLAYER_X = 120;
   const OBSTACLE_X = 300;
   const JUMP_POWER = 260;
   const OBSTACLE_SPEED = 140;
 
-  let player, obstacle, cursors;
+  let player, obstacle;
   let gameState = "WAITING"; // WAITING | JUMP | FALL | RESULT
 
-  /* =====================
-     Scene Create
-  ===================== */
   function create() {
     // 바닥
     const ground = this.add.rectangle(0, GROUND_Y, 480, 50, 0x555555);
@@ -66,7 +61,7 @@
     obstacle = this.add.rectangle(OBSTACLE_X, GROUND_Y - 20, 24, 32, 0xff0000);
     this.physics.add.existing(obstacle, true);
 
-    // 충돌 판정 (오답 상태일 때만)
+    // 오답일 때만 충돌 처리
     this.physics.add.collider(player, obstacle, () => {
       if (gameState === "FALL") {
         console.log("❌ 넘어짐");
@@ -75,68 +70,48 @@
       }
     });
 
-    cursors = this.input.keyboard.createCursorKeys();
-
-    console.log("콘솔에서 correct() 또는 wrong() 호출해보세요");
+    console.log("콘솔에서 correct() 또는 wrong() 실행");
   }
 
-  /* =====================
-     Update Loop
-  ===================== */
   function update() {
-    // 점프 중일 때만 이동
-    if (gameState === "JUMP") {
+    if (gameState === "JUMP" || gameState === "FALL") {
       obstacle.x -= OBSTACLE_SPEED * 0.016;
-
-      // 장애물 넘었을 때
-      if (obstacle.x < PLAYER_X - 40) {
-        console.log("⭕ 점프 성공");
-        gameState = "RESULT";
-        endRound();
-      }
     }
 
-    // 오답일 때 → 장애물이 다가옴
-    if (gameState === "FALL") {
-      obstacle.x -= OBSTACLE_SPEED * 0.016;
+    // 점프 성공
+    if (gameState === "JUMP" && obstacle.x < PLAYER_X - 40) {
+      console.log("⭕ 점프 성공");
+      gameState = "RESULT";
+      endRound();
     }
   }
 
-  /* =====================
-     외부 트리거 (퀴즈 결과)
-  ===================== */
+  // 퀴즈 정답
   window.correct = function () {
     if (gameState !== "WAITING") return;
-
-    console.log("정답!");
     gameState = "JUMP";
     player.body.setVelocityY(-JUMP_POWER);
   };
 
+  // 퀴즈 오답
   window.wrong = function () {
     if (gameState !== "WAITING") return;
-
-    console.log("오답!");
     gameState = "FALL";
   };
 
-  /* =====================
-     라운드 종료 & 리셋
-  ===================== */
   function endRound() {
     setTimeout(resetRound, 1000);
   }
 
   function resetRound() {
-    console.log("🔄 라운드 리셋");
-
     player.x = PLAYER_X;
     player.y = GROUND_Y - 20;
     player.body.setVelocity(0);
 
     obstacle.x = OBSTACLE_X;
-
     gameState = "WAITING";
+
+    console.log("🔄 다음 문제");
   }
 </script>
 

@@ -27,7 +27,7 @@ const WIDTH = 800;
 const HEIGHT = 400;
 const GROUND_Y = 320;
 
-let player, obstacle;
+let player, obstacle, ground;
 let gameState = "IDLE";
 
 /* ===============================
@@ -45,6 +45,10 @@ const config = {
       debug: false
     }
   },
+  render: {
+    pixelArt: true,
+    antialias: false
+  },
   scene: {
     preload,
     create,
@@ -52,55 +56,79 @@ const config = {
   }
 };
 
-const game = new Phaser.Game(config);
+new Phaser.Game(config);
 
 /* ===============================
    preload
 =============================== */
 function preload() {
-  this.load.image("player", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAFUlEQVRIS2NkYGD4z0AEYBxVSFUAANR+BBcOW0xKAAAAAElFTkSuQmCC");
-  this.load.image("obstacle", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAFUlEQVRIS2NkYGD4z0AEYBxVSFUAANR+BBcOW0xKAAAAAElFTkSuQmCC");
+  // 캐릭터
+  this.load.image("player_idle", "assets/characters/flover_idle.jpg");
+  this.load.image("player_jump", "assets/characters/flover_jump.jpg");
+  this.load.image("player_fail", "assets/characters/flover_fail.jpg");
+
+  // 장애물
+  this.load.image("hurdle", "assets/obstacles/hurdle.png");
+
+  // 바닥
+  this.load.image("ground", "assets/terrain/ground.png");
 }
 
 /* ===============================
    create
 =============================== */
 function create() {
-  // 바닥
-  const ground = this.add.rectangle(
+
+  /* 바닥 */
+  ground = this.physics.add.staticSprite(
     WIDTH / 2,
     GROUND_Y + 20,
-    WIDTH,
-    40,
-    0xffb703
+    "ground"
   );
-  this.physics.add.existing(ground, true);
+  ground.setScale(2);
+  ground.refreshBody();
 
-  // 플레이어 (오른쪽 고정)
-  player = this.physics.add.sprite(600, GROUND_Y - 20, "player");
-  player.setTint(0x4caf50);
+  /* 플레이어 */
+  player = this.physics.add.sprite(
+    600,
+    GROUND_Y - 40,
+    "player_idle"
+  );
+  player.setScale(2);
   player.setCollideWorldBounds(true);
   player.jumped = false;
 
-  // 장애물 (왼쪽)
-  obstacle = this.physics.add.sprite(150, GROUND_Y - 20, "obstacle");
-  obstacle.setTint(0xb0b0b0);
+  /* 장애물 */
+  obstacle = this.physics.add.sprite(
+    150,
+    GROUND_Y - 32,
+    "hurdle"
+  );
+  obstacle.setScale(2);
   obstacle.body.setAllowGravity(false);
   obstacle.body.setImmovable(true);
   obstacle.setVelocity(0, 0);
 
-  // 충돌
+  // 히트박스 살짝 조정
+  obstacle.body.setSize(
+    obstacle.width - 10,
+    obstacle.height - 8
+  );
+
+  /* 충돌 */
   this.physics.add.collider(player, ground);
   this.physics.add.collider(obstacle, ground);
 
   this.physics.add.collider(player, obstacle, () => {
     if (gameState === "FAIL") {
       player.setVelocity(0);
-      player.setAngle(90); // 넘어짐
+      player.setTexture("player_fail");
+      player.setAngle(90);
       resetScene(this);
     }
   });
 
+  /* 안내 텍스트 */
   this.add.text(20, 20, "콘솔에서 correct() / wrong()", {
     font: "16px Arial",
     fill: "#000"
@@ -111,34 +139,44 @@ function create() {
    update
 =============================== */
 function update() {
-  // 장애물 이동
+
+  /* 장애물 이동 */
   if (gameState === "SUCCESS" || gameState === "FAIL") {
     obstacle.setVelocityX(200);
-    obstacle.setVelocityY(0);
   }
 
-  // 장애물이 플레이어 근처에 왔을 때 점프
+  /* 점프 타이밍 */
   if (
     (gameState === "SUCCESS" || gameState === "FAIL") &&
     !player.jumped &&
     obstacle.x >= player.x - 80
   ) {
     player.jumped = true;
+    player.setTexture("player_jump");
 
     if (gameState === "SUCCESS") {
-      player.setAngle(0);
-      player.setVelocityY(-380); // 성공 점프
+      player.setVelocityY(-380);
     } else {
-      player.setVelocityY(-260); // 실패 점프
+      player.setVelocityY(-260);
       setTimeout(() => {
+        player.setTexture("player_fail");
         player.setAngle(90);
       }, 350);
     }
   }
 
-  // 성공 시 장애물 완전히 지나가면 리셋
+  /* 착지 후 대기 상태 */
+  if (
+    player.body.blocked.down &&
+    gameState === "IDLE"
+  ) {
+    player.setTexture("player_idle");
+    player.setAngle(0);
+  }
+
+  /* 성공 후 리셋 */
   if (gameState === "SUCCESS" && obstacle.x > player.x + 60) {
-    resetScene(game.scene.scenes[0]);
+    resetScene(this);
   }
 }
 

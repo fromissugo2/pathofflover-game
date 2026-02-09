@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <title>Path of flover</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+  <!-- Phaser CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 
   <style>
     body {
@@ -16,30 +17,25 @@
 <body>
 
 <script>
-  console.log("INLINE SCRIPT START");
+  console.log("Phaser test start");
 
   const config = {
     type: Phaser.AUTO,
     width: 480,
     height: 270,
-    backgroundColor: "#111111",
+    backgroundColor: "#333333",
     scene: {
       create: function () {
-        console.log("SCENE CREATE");
-
-        this.add.rectangle(0, 0, 480, 270, 0x222222)
-          .setOrigin(0);
-
         this.add.text(240, 120, "Path of flover", {
           fontFamily: "Arial",
           fontSize: "24px",
           color: "#ffffff"
         }).setOrigin(0.5);
 
-        this.add.text(240, 160, "INLINE TEST OK", {
+        this.add.text(240, 160, "Phaser is running", {
           fontFamily: "Arial",
           fontSize: "14px",
-          color: "#aaaaaa"
+          color: "#cccccc"
         }).setOrigin(0.5);
       }
     }

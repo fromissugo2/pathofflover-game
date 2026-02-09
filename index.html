@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Path of flover</title>
 
-  <!-- Phaser CDN -->
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 
   <style>
@@ -16,33 +15,7 @@
 </head>
 <body>
 
-<script>
-  console.log("Phaser test start");
-
-  const config = {
-    type: Phaser.AUTO,
-    width: 480,
-    height: 270,
-    backgroundColor: "#333333",
-    scene: {
-      create: function () {
-        this.add.text(240, 120, "Path of flover", {
-          fontFamily: "Arial",
-          fontSize: "24px",
-          color: "#ffffff"
-        }).setOrigin(0.5);
-
-        this.add.text(240, 160, "Phaser is running", {
-          fontFamily: "Arial",
-          fontSize: "14px",
-          color: "#cccccc"
-        }).setOrigin(0.5);
-      }
-    }
-  };
-
-  new Phaser.Game(config);
-</script>
+<script src="main.js"></script>
 
 </body>
 </html>

@@ -25,7 +25,7 @@
       default: "arcade",
       arcade: {
         gravity: { y: 600 },
-        debug: false
+        debug: true   // 🔥 디버그 ON
       }
     },
     scene: {
@@ -54,18 +54,26 @@
     // 플레이어
     player = this.add.rectangle(420, GROUND_Y - 20, 16, 24, 0x00ff88);
     this.physics.add.existing(player);
-    player.body.setCollideWorldBounds(true);
     this.physics.add.collider(player, ground);
 
-    // ✅ 장애물 (확실히 보이게)
-    obstacle = this.add.rectangle(360, GROUND_Y - 20, 24, 32, 0xff0000);
-    this.physics.add.existing(obstacle);
-    obstacle.body.setVelocityX(-OBSTACLE_SPEED);
-    obstacle.body.setImmovable(true);
-    this.physics.add.collider(obstacle, ground);
+    player.body.setCollideWorldBounds(true);
 
-    // 충돌 감지
-    this.physics.add.collider(player, obstacle, onHit, null, this);
+    // ✅ 장애물 (Graphics 사용)
+    const g = this.add.graphics();
+    g.fillStyle(0xff0000, 1);
+    g.fillRect(0, 0, 24, 32);
+
+    obstacle = this.physics.add.existing(
+      g.generateTexture("obstacleTex", 24, 32),
+      false
+    );
+
+    obstacle = this.physics.add.image(360, GROUND_Y - 16, "obstacleTex");
+    obstacle.setVelocityX(-OBSTACLE_SPEED);
+    obstacle.setImmovable(true);
+
+    this.physics.add.collider(obstacle, ground);
+    this.physics.add.collider(player, obstacle, onHit);
 
     cursors = this.input.keyboard.createCursorKeys();
   }
@@ -75,19 +83,16 @@
   }
 
   function update() {
-    // 플레이어 이동
     player.body.setVelocityX(-PLAYER_SPEED);
 
     if (cursors.space.isDown && player.body.blocked.down) {
       player.body.setVelocityY(-JUMP);
     }
 
-    // 플레이어 리셋
     if (player.x < -10) {
       player.x = 490;
     }
 
-    // 장애물 이동 & 리셋
     if (obstacle.x < -30) {
       obstacle.x = 480;
     }

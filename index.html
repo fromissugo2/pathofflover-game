@@ -15,7 +15,61 @@
 </head>
 <body>
 
-<script src="main.js"></script>
+<script>
+  alert("INLINE STEP 4 RUNNING");
+
+  const config = {
+    type: Phaser.AUTO,
+    width: 480,
+    height: 270,
+    backgroundColor: "#222222",
+    physics: {
+      default: "arcade",
+      arcade: {
+        gravity: { y: 600 },
+        debug: false
+      }
+    },
+    scene: {
+      create,
+      update
+    }
+  };
+
+  new Phaser.Game(config);
+
+  let player;
+  let cursors;
+  const SPEED = 100;
+  const JUMP = 260;
+  const GROUND_Y = 220;
+
+  function create() {
+    const ground = this.add.rectangle(0, GROUND_Y, 480, 50, 0x555555);
+    ground.setOrigin(0);
+    this.physics.add.existing(ground, true);
+
+    player = this.add.rectangle(420, GROUND_Y - 20, 16, 24, 0x00ff88);
+    this.physics.add.existing(player);
+
+    player.body.setCollideWorldBounds(true);
+    this.physics.add.collider(player, ground);
+
+    cursors = this.input.keyboard.createCursorKeys();
+  }
+
+  function update() {
+    player.body.setVelocityX(-SPEED);
+
+    if (cursors.space.isDown && player.body.blocked.down) {
+      player.body.setVelocityY(-JUMP);
+    }
+
+    if (player.x < -10) {
+      player.x = 490;
+    }
+  }
+</script>
 
 </body>
 </html>

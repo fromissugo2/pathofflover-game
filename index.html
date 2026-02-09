@@ -16,8 +16,6 @@
 <body>
 
 <script>
-  alert("INLINE STEP 4 RUNNING");
-
   const config = {
     type: Phaser.AUTO,
     width: 480,
@@ -39,34 +37,58 @@
   new Phaser.Game(config);
 
   let player;
+  let obstacle;
   let cursors;
   const SPEED = 100;
   const JUMP = 260;
   const GROUND_Y = 220;
 
   function create() {
+    // 바닥
     const ground = this.add.rectangle(0, GROUND_Y, 480, 50, 0x555555);
     ground.setOrigin(0);
     this.physics.add.existing(ground, true);
 
+    // 플레이어
     player = this.add.rectangle(420, GROUND_Y - 20, 16, 24, 0x00ff88);
     this.physics.add.existing(player);
-
     player.body.setCollideWorldBounds(true);
     this.physics.add.collider(player, ground);
+
+    // 장애물
+    obstacle = this.add.rectangle(520, GROUND_Y - 20, 16, 24, 0xff5555);
+    this.physics.add.existing(obstacle);
+    obstacle.body.setVelocityX(-SPEED);
+    obstacle.body.setImmovable(true);
+
+    this.physics.add.collider(obstacle, ground);
+
+    // 플레이어 ↔ 장애물 충돌
+    this.physics.add.collider(player, obstacle, onHit, null, this);
 
     cursors = this.input.keyboard.createCursorKeys();
   }
 
+  function onHit() {
+    console.log("HIT OBSTACLE");
+  }
+
   function update() {
+    // 플레이어 이동
     player.body.setVelocityX(-SPEED);
 
     if (cursors.space.isDown && player.body.blocked.down) {
       player.body.setVelocityY(-JUMP);
     }
 
+    // 플레이어 리셋
     if (player.x < -10) {
       player.x = 490;
+    }
+
+    // 장애물 리셋
+    if (obstacle.x < -10) {
+      obstacle.x = 520;
     }
   }
 </script>

@@ -1,8 +1,11 @@
+console.log("main.js loaded");
+
 const config = {
   type: Phaser.AUTO,
   width: 480,
   height: 270,
   backgroundColor: "#2d2d2d",
+  parent: null,
   scene: {
     preload,
     create,
@@ -10,24 +13,31 @@ const config = {
   }
 };
 
-const game = new Phaser.Game(config);
+new Phaser.Game(config);
 
 function preload() {
-  // 지금은 아무것도 안 불러옴
+  console.log("preload()");
 }
 
 function create() {
-  this.add.text(240, 135, "Path of flover", {
-    font: "20px Arial",
-    fill: "#ffffff"
+  console.log("create()");
+
+  // 배경 사각형 (Scene 실행 확인용)
+  const bg = this.add.rectangle(0, 0, 480, 270, 0x1e1e1e);
+  bg.setOrigin(0);
+
+  // 텍스트
+  this.add.text(240, 120, "Path of flover", {
+    fontFamily: "Arial",
+    fontSize: "24px",
+    color: "#ffffff"
   }).setOrigin(0.5);
 
-  this.add.text(240, 170, "Game loading...", {
-    font: "12px Arial",
-    fill: "#cccccc"
+  this.add.text(240, 160, "Game loading...", {
+    fontFamily: "Arial",
+    fontSize: "14px",
+    color: "#bbbbbb"
   }).setOrigin(0.5);
 }
 
-function update() {
-  // 나중에 캐릭터 이동, 충돌 처리
-}
+function update() {}

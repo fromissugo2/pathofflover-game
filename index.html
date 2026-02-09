@@ -9,109 +9,141 @@
   <meta http-equiv="Expires" content="0" />
 
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #ffffff;
+    }
+  </style>
 </head>
 <body>
 
 <script>
-  const config = {
-    type: Phaser.AUTO,
-    width: 480,
-    height: 270,
-    backgroundColor: "#222222",
-    physics: {
-      default: "arcade",
-      arcade: {
-        gravity: { y: 600 },
-        debug: false
-      }
-    },
-    scene: { create, update }
-  };
+/* ===============================
+   기본 설정
+=============================== */
+const WIDTH = 800;
+const HEIGHT = 400;
+const GROUND_Y = 320;
 
-  new Phaser.Game(config);
+let player, obstacle;
+let gameState = "IDLE";
 
-  /* ===== 설정 ===== */
-  const GROUND_Y = 220;
-  const PLAYER_X = 360;     // ▶ 플레이어 오른쪽
-  const OBSTACLE_X = 120;   // ◀ 장애물 왼쪽
-  const JUMP_POWER = 260;
-  const OBSTACLE_SPEED = 140;
-
-  let player, obstacle;
-  let gameState = "WAITING"; // WAITING | JUMP | FALL | RESULT
-
-  function create() {
-    // 바닥
-    const ground = this.add.rectangle(0, GROUND_Y, 480, 50, 0x555555);
-    ground.setOrigin(0);
-    this.physics.add.existing(ground, true);
-
-    // 플레이어
-    player = this.add.rectangle(PLAYER_X, GROUND_Y - 20, 16, 24, 0x00ff88);
-    this.physics.add.existing(player);
-    this.physics.add.collider(player, ground);
-
-    // 장애물 (dynamic body)
-    obstacle = this.add.rectangle(OBSTACLE_X, GROUND_Y - 20, 24, 32, 0xff0000);
-    this.physics.add.existing(obstacle);
-    obstacle.body.setAllowGravity(false);
-    obstacle.body.setImmovable(true);
-
-    // 충돌 (오답일 때만)
-    this.physics.add.collider(player, obstacle, () => {
-      if (gameState === "FALL") {
-        console.log("❌ 넘어짐");
-        gameState = "RESULT";
-        endRound();
-      }
-    });
-
-    console.log("콘솔에서 correct() 또는 wrong() 실행");
-  }
-
-  function update() {
-    if (gameState === "JUMP" || gameState === "FALL") {
-      // ◀▶ 왼쪽 → 오른쪽 이동
-      obstacle.x += OBSTACLE_SPEED * 0.016;
-      obstacle.body.updateFromGameObject();
+/* ===============================
+   Phaser 설정
+=============================== */
+const config = {
+  type: Phaser.AUTO,
+  width: WIDTH,
+  height: HEIGHT,
+  backgroundColor: "#ffffff",
+  physics: {
+    default: "arcade",
+    arcade: {
+      gravity: { y: 800 },
+      debug: false
     }
+  },
+  scene: {
+    preload,
+    create,
+    update
+  }
+};
 
-    // 점프 성공 판정 (장애물이 플레이어 오른쪽을 지나가면)
-    if (gameState === "JUMP" && obstacle.x > PLAYER_X + 40) {
-      console.log("⭕ 점프 성공");
-      gameState = "RESULT";
-      endRound();
+new Phaser.Game(config);
+
+/* ===============================
+   preload
+=============================== */
+function preload() {
+  // 임시 도형 (나중에 도트 스프라이트로 교체)
+  this.load.image("player", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAFUlEQVRIS2NkYGD4z0AEYBxVSFUAANR+BBcOW0xKAAAAAElFTkSuQmCC");
+  this.load.image("obstacle", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAFUlEQVRIS2NkYGD4z0AEYBxVSFUAANR+BBcOW0xKAAAAAElFTkSuQmCC");
+}
+
+/* ===============================
+   create
+=============================== */
+function create() {
+  // 바닥
+  const ground = this.add.rectangle(
+    WIDTH / 2,
+    GROUND_Y + 20,
+    WIDTH,
+    40,
+    0xffb703
+  );
+  this.physics.add.existing(ground, true);
+
+  // 플레이어 (오른쪽)
+  player = this.physics.add.sprite(600, GROUND_Y - 20, "player");
+  player.setTint(0x4caf50);
+  player.setCollideWorldBounds(true);
+
+  // 장애물 (왼쪽)
+  obstacle = this.physics.add.sprite(200, GROUND_Y - 20, "obstacle");
+  obstacle.setTint(0xb0b0b0);
+  obstacle.setImmovable(true);
+
+  // 충돌
+  this.physics.add.collider(player, ground);
+  this.physics.add.collider(obstacle, ground);
+
+  this.physics.add.collider(player, obstacle, () => {
+    if (gameState === "FAIL") {
+      player.setVelocityX(0);
+      player.setVelocityY(0);
+      player.setAngle(90);
+      resetScene(this);
     }
-  }
+  });
 
-  // 정답
-  window.correct = function () {
-    if (gameState !== "WAITING") return;
-    gameState = "JUMP";
-    player.body.setVelocityY(-JUMP_POWER);
-  };
+  // 안내 텍스트
+  this.add.text(20, 20, "콘솔에서 correct() / wrong() 실행", {
+    font: "16px Arial",
+    fill: "#000"
+  });
+}
 
-  // 오답
-  window.wrong = function () {
-    if (gameState !== "WAITING") return;
-    gameState = "FALL";
-  };
+/* ===============================
+   update
+=============================== */
+function update() {
+  // 아무 것도 안 함 (연출 중심)
+}
 
-  function endRound() {
-    setTimeout(resetRound, 1000);
-  }
+/* ===============================
+   정답 / 오답 트리거
+=============================== */
+window.correct = function () {
+  if (gameState !== "IDLE") return;
+  gameState = "SUCCESS";
 
-  function resetRound() {
-    player.x = PLAYER_X;
-    player.y = GROUND_Y - 20;
-    player.body.setVelocity(0);
+  obstacle.setVelocityX(200);
+  player.setVelocityY(-350);
 
-    obstacle.x = OBSTACLE_X;
-    obstacle.body.updateFromGameObject();
+  setTimeout(() => resetScene(game.scene.scenes[0]), 1200);
+};
 
-    gameState = "WAITING";
-    console.log("🔄 다음 문제");
-  }
+window.wrong = function () {
+  if (gameState !== "IDLE") return;
+  gameState = "FAIL";
+
+  obstacle.setVelocityX(200);
+  player.setVelocityY(-200);
+};
+
+/* ===============================
+   씬 리셋
+=============================== */
+function resetScene(scene) {
+  setTimeout(() => {
+    gameState = "IDLE";
+    scene.scene.restart();
+  }, 600);
+}
 </script>
 
 </body>
